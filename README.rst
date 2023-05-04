@@ -95,7 +95,6 @@ Usage Example
     with adafruit_wave.open("sample.wav") as w:
         print(w.getsampwidth())
         print(w.getnchannels())
-        print(w.getcomptype())
         print(list(memoryview(w.readframes(100)).cast("h")))
 
 Documentation
