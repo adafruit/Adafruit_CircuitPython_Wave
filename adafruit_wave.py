@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023 Guido van Rossum <guido@cwi.nl> and others.
+#
+# SPDX-License-Identifier: PSF-2.0
 """
 `adafruit_wave`
 ================================================================================
@@ -87,6 +90,7 @@ is destroyed.
 
 """
 
+# pylint: disable=missing-class-docstring,redefined-outer-name,missing-function-docstring,invalid-name,import-outside-toplevel,too-many-instance-attributes,consider-using-with,no-self-use,redefined-builtin,not-callable,unused-variable,attribute-defined-outside-init,too-many-public-methods,no-else-return
 # imports
 
 __version__ = "0.0.0+auto.0"
@@ -95,20 +99,13 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_wave.git"
 from collections import namedtuple
 import builtins
 import struct
-import sys
 
 
 __all__ = ["open", "Error", "Wave_read", "Wave_write"]
 
-def byteswap(data, sampwidth):
-    print(data)
-    raise
-    ch = "I" if sampwidth == 16 else "H"
 
 class Chunk:
     def __init__(self, file, align=True, bigendian=True, inclheader=False):
-        import struct
-
         self.closed = False
         self.align = align  # whether to align to word (2-byte) boundaries
         if bigendian:
@@ -223,6 +220,7 @@ class Chunk:
             dummy = self.read(n)
             if not dummy:
                 raise EOFError
+
 
 class Error(Exception):
     pass
@@ -391,11 +389,11 @@ class Wave_read:
         if nframes == 0:
             return b""
         data = self._data_chunk.read(nframes * self._framesize)
-        if self._sampwidth != 1 and sys.byteorder == "big":
-            data = byteswap(data, self._sampwidth)
         if self._convert and data:
             data = self._convert(data)
-        self._soundpos = self._soundpos + len(data) // (self._nchannels * self._sampwidth)
+        self._soundpos = self._soundpos + len(data) // (
+            self._nchannels * self._sampwidth
+        )
         return data
 
     #
@@ -591,8 +589,6 @@ class Wave_write:
         nframes = len(data) // (self._sampwidth * self._nchannels)
         if self._convert:
             data = self._convert(data)
-        if self._sampwidth != 1 and sys.byteorder == "big":
-            data = byteswap(data, self._sampwidth)
         self._file.write(data)
         self._datawritten += len(data)
         self._nframeswritten = self._nframeswritten + nframes
@@ -674,7 +670,7 @@ class Wave_write:
         self._datalength = self._datawritten
 
 
-def open(f, mode=None):
+def open(f, mode=None):  # pylint: disable=redefined-builtin
     if mode is None:
         if hasattr(f, "mode"):
             mode = f.mode
