@@ -168,6 +168,10 @@ _wave_params = namedtuple(
 
 
 class Wave_read:
+    """Used for wave files opened in read mode.
+
+    Do not construct directly, but call `open` instead."""
+
     def initfp(self, file):
         self._convert = None
         self._soundpos = 0
@@ -225,13 +229,16 @@ class Wave_read:
     # User visible methods.
     #
     def getfp(self):
+        """Get the underlying file object"""
         return self._file
 
     def rewind(self):
+        """Go back to the start of the audio data"""
         self._data_seek_needed = 1
         self._soundpos = 0
 
     def close(self):
+        """Close the file"""
         self._file = None
         file = self._i_opened_the_file
         if file:
@@ -239,49 +246,34 @@ class Wave_read:
             file.close()
 
     def tell(self):
+        """Get the current position in the audio data"""
         return self._soundpos
 
     def getnchannels(self):
+        """Get the number of channels (1 for mono, 2 for stereo)"""
         return self._nchannels
 
     def getnframes(self):
+        """Get the number of frames"""
         return self._nframes
 
     def getsampwidth(self):
+        """Get the sample width in bytes"""
         return self._sampwidth
 
     def getframerate(self):
+        """Get the sample rate in Hz"""
         return self._framerate
 
-    def getcomptype(self):
-        return self._comptype
-
-    def getcompname(self):
-        return self._compname
-
-    def getparams(self):
-        return _wave_params(
-            self.getnchannels(),
-            self.getsampwidth(),
-            self.getframerate(),
-            self.getnframes(),
-            self.getcomptype(),
-            self.getcompname(),
-        )
-
-    def getmarkers(self):
-        return None
-
-    def getmark(self, id):
-        raise Error("no marks")
-
     def setpos(self, pos):
+        """Seek to a particular position in the audio data"""
         if pos < 0 or pos > self._nframes:
             raise Error("position not in range")
         self._soundpos = pos
         self._data_seek_needed = 1
 
     def readframes(self, nframes):
+        """Read frames of audio data"""
         if self._data_seek_needed:
             self._data_chunk.seek(0, 0)
             pos = self._soundpos * self._framesize
@@ -331,6 +323,10 @@ class Wave_read:
 
 
 class Wave_write:
+    """Used for wave files opened in write mode.
+
+    Do not construct directly, but call `open` instead."""
+
     def __init__(self, f):
         self._i_opened_the_file = None
         if isinstance(f, str):
@@ -368,6 +364,7 @@ class Wave_write:
     # User visible methods.
     #
     def setnchannels(self, nchannels):
+        """Set the number of channels (1 for mono, 2 for stereo)"""
         if self._datawritten:
             raise Error("cannot change parameters after starting to write")
         if nchannels < 1:
@@ -375,11 +372,13 @@ class Wave_write:
         self._nchannels = nchannels
 
     def getnchannels(self):
+        """Get the number of channels (1 for mono, 2 for stereo)"""
         if not self._nchannels:
             raise Error("number of channels not set")
         return self._nchannels
 
     def setsampwidth(self, sampwidth):
+        """Set the sample width in bytes"""
         if self._datawritten:
             raise Error("cannot change parameters after starting to write")
         if sampwidth < 1 or sampwidth > 4:
@@ -387,11 +386,13 @@ class Wave_write:
         self._sampwidth = sampwidth
 
     def getsampwidth(self):
+        """Get the sample width in bytes"""
         if not self._sampwidth:
             raise Error("sample width not set")
         return self._sampwidth
 
     def setframerate(self, framerate):
+        """Set the sample rate in Hz"""
         if self._datawritten:
             raise Error("cannot change parameters after starting to write")
         if framerate <= 0:
@@ -399,6 +400,7 @@ class Wave_write:
         self._framerate = int(round(framerate))
 
     def getframerate(self):
+        """Get the sample rate in Hz"""
         if not self._framerate:
             raise Error("frame rate not set")
         return self._framerate
@@ -411,21 +413,8 @@ class Wave_write:
     def getnframes(self):
         return self._nframeswritten
 
-    def setcomptype(self, comptype, compname):
-        if self._datawritten:
-            raise Error("cannot change parameters after starting to write")
-        if comptype not in ("NONE",):
-            raise Error("unsupported compression type")
-        self._comptype = comptype
-        self._compname = compname
-
-    def getcomptype(self):
-        return self._comptype
-
-    def getcompname(self):
-        return self._compname
-
     def setparams(self, params):
+        """Set all parameters at once"""
         nchannels, sampwidth, framerate, nframes, comptype, compname = params
         if self._datawritten:
             raise Error("cannot change parameters after starting to write")
@@ -433,33 +422,13 @@ class Wave_write:
         self.setsampwidth(sampwidth)
         self.setframerate(framerate)
         self.setnframes(nframes)
-        self.setcomptype(comptype, compname)
-
-    def getparams(self):
-        if not self._nchannels or not self._sampwidth or not self._framerate:
-            raise Error("not all parameters set")
-        return _wave_params(
-            self._nchannels,
-            self._sampwidth,
-            self._framerate,
-            self._nframes,
-            self._comptype,
-            self._compname,
-        )
-
-    def setmark(self, id, pos, name):
-        raise Error("setmark() not supported")
-
-    def getmark(self, id):
-        raise Error("no marks")
-
-    def getmarkers(self):
-        return None
 
     def tell(self):
+        """Get the current position in the audio data"""
         return self._nframeswritten
 
     def writeframesraw(self, data):
+        """Write data to the file without updating the header"""
         if not isinstance(data, (bytes, bytearray)):
             data = memoryview(data).cast("B")
         self._ensure_header_written(len(data))
@@ -471,11 +440,13 @@ class Wave_write:
         self._nframeswritten = self._nframeswritten + nframes
 
     def writeframes(self, data):
+        """Write data to the file and update the header if needed"""
         self.writeframesraw(data)
         if self._datalength != self._datawritten:
             self._patchheader()
 
     def close(self):
+        """Close the file"""
         try:
             if self._file:
                 self._ensure_header_written(0)
@@ -548,6 +519,13 @@ class Wave_write:
 
 
 def open(f, mode=None):  # pylint: disable=redefined-builtin
+    """Open a wave file in reading (default) or writing (``mode="w"``) mode.
+
+    The argument may be a filename or an open file.
+
+    In reading mode, returns a `Wave_read` object.
+    In writing mode, returns a `Wave_write` object.
+    """
     if mode is None:
         if hasattr(f, "mode"):
             mode = f.mode
