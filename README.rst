@@ -2,7 +2,7 @@ Introduction
 ============
 
 
-.. image:: https://readthedocs.org/projects/adafruit-circuitpython-wave/badge/?version=latest
+.. image:: https://readthedocs.org/projects/circuitpython-wave/badge/?version=latest
     :target: https://docs.circuitpython.org/projects/wave/en/latest/
     :alt: Documentation Status
 
