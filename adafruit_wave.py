@@ -20,16 +20,14 @@ Implementation Notes
 
 """
 
-# pylint: disable=missing-class-docstring,redefined-outer-name,missing-function-docstring,invalid-name,import-outside-toplevel,too-many-instance-attributes,consider-using-with,no-self-use,redefined-builtin,not-callable,unused-variable,attribute-defined-outside-init,too-many-public-methods,no-else-return
 # imports
 
 __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_wave.git"
 
-from collections import namedtuple
 import builtins
 import struct
-
+from collections import namedtuple
 
 __all__ = ["open", "Error", "Wave_read", "Wave_write"]
 
@@ -162,9 +160,7 @@ WAVE_FORMAT_PCM = 0x0001
 
 _array_fmts = None, "b", "h", None, "i"
 
-_wave_params = namedtuple(
-    "_wave_params", "nchannels sampwidth framerate nframes comptype compname"
-)
+_wave_params = namedtuple("_wave_params", "nchannels sampwidth framerate nframes comptype compname")
 
 
 class Wave_read:
@@ -285,9 +281,7 @@ class Wave_read:
         data = self._data_chunk.read(nframes * self._framesize)
         if self._convert and data:
             data = self._convert(data)
-        self._soundpos = self._soundpos + len(data) // (
-            self._nchannels * self._sampwidth
-        )
+        self._soundpos = self._soundpos + len(data) // (self._nchannels * self._sampwidth)
         return data
 
     #
@@ -314,7 +308,7 @@ class Wave_read:
             if not self._sampwidth:
                 raise Error("bad sample width")
         else:
-            raise Error("unknown format: %r" % (wFormatTag,))
+            raise Error(f"unknown format: {wFormatTag!r}")
         if not self._nchannels:
             raise Error("bad # of channels")
         self._framesize = self._nchannels * self._sampwidth
@@ -518,7 +512,7 @@ class Wave_write:
         self._datalength = self._datawritten
 
 
-def open(f, mode=None):  # pylint: disable=redefined-builtin
+def open(f, mode=None):
     """Open a wave file in reading (default) or writing (``mode="w"``) mode.
 
     The argument may be a filename or an open file.
@@ -531,9 +525,9 @@ def open(f, mode=None):  # pylint: disable=redefined-builtin
             mode = f.mode
         else:
             mode = "rb"
-    if mode in ("r", "rb"):
+    if mode in {"r", "rb"}:
         return Wave_read(f)
-    elif mode in ("w", "wb"):
+    elif mode in {"w", "wb"}:
         return Wave_write(f)
     else:
         raise Error("mode must be 'r', 'rb', 'w', or 'wb'")
