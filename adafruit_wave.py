@@ -49,7 +49,7 @@ class Chunk:
         except struct.error:
             raise EOFError from None
         if inclheader:
-            self.chunksize = self.chunksize - 8  # subtract header
+            self.chunksize -= 8  # subtract header
         self.size_read = 0
         try:
             self.offset = self.file.tell()
@@ -89,9 +89,9 @@ class Chunk:
         if not self.seekable:
             raise OSError("cannot seek")
         if whence == 1:
-            pos = pos + self.size_read
+            pos += self.size_read
         elif whence == 2:
-            pos = pos + self.chunksize
+            pos += self.chunksize
         if pos < 0 or pos > self.chunksize:
             raise RuntimeError
         self.file.seek(self.offset + pos, 0)
@@ -115,13 +115,12 @@ class Chunk:
             return b""
         if size < 0:
             size = self.chunksize - self.size_read
-        if size > self.chunksize - self.size_read:
-            size = self.chunksize - self.size_read
+        size = min(size, self.chunksize - self.size_read)
         data = self.file.read(size)
-        self.size_read = self.size_read + len(data)
+        self.size_read += len(data)
         if self.size_read == self.chunksize and self.align and (self.chunksize & 1):
             dummy = self.file.read(1)
-            self.size_read = self.size_read + len(dummy)
+            self.size_read += len(dummy)
         return data
 
     def skip(self):
@@ -139,9 +138,9 @@ class Chunk:
                 n = self.chunksize - self.size_read
                 # maybe fix alignment
                 if self.align and (self.chunksize & 1):
-                    n = n + 1
+                    n += 1
                 self.file.seek(n, 1)
-                self.size_read = self.size_read + n
+                self.size_read += n
                 return
             except OSError:
                 pass
@@ -281,7 +280,7 @@ class Wave_read:
         data = self._data_chunk.read(nframes * self._framesize)
         if self._convert and data:
             data = self._convert(data)
-        self._soundpos = self._soundpos + len(data) // (self._nchannels * self._sampwidth)
+        self._soundpos += len(data) // (self._nchannels * self._sampwidth)
         return data
 
     #
@@ -431,7 +430,7 @@ class Wave_write:
             data = self._convert(data)
         self._file.write(data)
         self._datawritten += len(data)
-        self._nframeswritten = self._nframeswritten + nframes
+        self._nframeswritten += nframes
 
     def writeframes(self, data):
         """Write data to the file and update the header if needed"""
